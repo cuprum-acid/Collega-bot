@@ -14,7 +14,7 @@ def get_players():
         if 'players' in data and 'online' in data['players']:
             online_players = data['players']['online']
             if online_players > 0 and 'list' in data['players']:
-                players = data['players']['list']
+                players = [player['name'] for player in data['players']['list']]
                 return f"В данный момент на сервере находятся игроки: {', '.join(players)}"
             else:
                 return "На сервере в данный момент нет игроков."
