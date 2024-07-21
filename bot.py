@@ -2,6 +2,8 @@ import requests
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
+from mem import get_mem
+
 TELEGRAM_BOT_TOKEN = ''
 SERVER_URL = "https://api.mcsrvstat.us/3/d11.gamely.pro:20187"
 REQUEST_INTERVAL = 240
@@ -36,7 +38,11 @@ async def check_new_players(context: CallbackContext) -> None:
 
 
 async def start(update: Update, context: CallbackContext) -> None:
-    await update.message.reply_text('Привет! Используй команду /players, чтобы узнать кто сейчас на сервере Minecraft.')
+    await update.message.reply_text(
+        'Привет! Используй команду /players, чтобы узнать кто сейчас на сервере Minecraft. '
+        'Запусти слежку за сервером командой /monitor или останови ее с помощью /monitor_stop '
+        'А если хочешь получить мем-предсказание на день, введи /mem_taro'
+    )
 
 
 async def players(update: Update, context: CallbackContext) -> None:
@@ -68,13 +74,17 @@ async def monitor_stop(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
 
 
+async def mem_taro(update: Update, context: CallbackContext) -> None:
+    await get_mem(update, context)
+
+
 def main() -> None:
     application = ApplicationBuilder().job_queue(JobQueue()).token(TELEGRAM_BOT_TOKEN).build()
-
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("monitor", monitor))
     application.add_handler(CommandHandler("monitor_stop", monitor_stop))
     application.add_handler(CommandHandler("players", players))
+    application.add_handler(CommandHandler("mem_taro", mem_taro))
     application.run_polling()
 
 
