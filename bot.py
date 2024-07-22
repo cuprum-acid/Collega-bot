@@ -41,7 +41,6 @@ async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
         'Привет! Используй команду /players, чтобы узнать кто сейчас на сервере Minecraft. '
         'Запусти слежку за сервером командой /monitor или останови ее с помощью /monitor_stop '
-        'А если хочешь получить мем-предсказание на день, введи /mem_taro'
     )
 
 
@@ -65,7 +64,7 @@ async def monitor(update: Update, context: CallbackContext) -> None:
     context.job_queue.run_repeating(check_new_players, interval=REQUEST_INTERVAL, chat_id=chat_id)
     await update.message.reply_text(
         'Коллеги! Просьба не опаздывать на пары! '
-        'Теперь я слежу за всеми входящими и выходящими в аудиторию.'
+        'Теперь в аудитории я слежу за всеми входящими и выходящими.'
     )
 
 
@@ -74,7 +73,7 @@ async def monitor_stop(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
 
 
-async def mem_taro(update: Update, context: CallbackContext) -> None:
+async def mem(update: Update, context: CallbackContext) -> None:
     await get_mem(update, context)
 
 
@@ -84,7 +83,7 @@ def main() -> None:
     application.add_handler(CommandHandler("monitor", monitor))
     application.add_handler(CommandHandler("monitor_stop", monitor_stop))
     application.add_handler(CommandHandler("players", players))
-    application.add_handler(CommandHandler("mem_taro", mem_taro))
+    application.add_handler(CommandHandler("collega_taro", mem))
     application.run_polling()
 
 

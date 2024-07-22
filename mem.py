@@ -22,8 +22,14 @@ async def get_mem(update: Update, context: CallbackContext) -> None:
     category = choose_category(seed)
     if category == 'стикер':
         sticker_set = await context.bot.get_sticker_set("Haha_kemp")
-        await update.message.reply_text(f'{update.message.from_user.name}, твое состояние сегодня:')
-        await update.message.reply_sticker(sticker_set.stickers[seed % len(sticker_set.stickers)])
+        await context.bot.send_message(
+            update.message.chat_id,
+            f'{update.message.from_user.name}, твое состояние сегодня:'
+        )
+        await context.bot.send_sticker(
+            update.message.chat_id,
+            sticker_set.stickers[seed % len(sticker_set.stickers)]
+        )
     else:
         images = os.listdir('res/images/' + category)
         await context.bot.send_message(
