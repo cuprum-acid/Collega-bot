@@ -1,9 +1,10 @@
-import datetime
 import os
+import random
+from datetime import date
 from telegram import Update
 from telegram.ext import CallbackContext
 
-WEIGHTS = {
+WEIGHTS: dict[str, int] = {
     'стикер': 30,
     'достижения': 5,
     'жиза': 7,
@@ -15,36 +16,50 @@ WEIGHTS = {
     'это_я': 3,
     'информация': 3
 }
+today_memes: dict[int: [str, int]] = {}  # matches (category, img_number) to a user_id
+last_update: date = date.today()
+
+random.seed(last_update.year * last_update.month * last_update.day)
 
 
 async def get_mem(update: Update, context: CallbackContext) -> None:
-    seed = get_daily_seed(update.message.from_user.id)
-    category = choose_category(seed)
-    if category == 'стикер':
+    mem: (str, int) = get_daily_mem(update.message.from_user.id)
+    if mem[0] == 'стикер':
         sticker_set = await context.bot.get_sticker_set("Haha_kemp")
+        if mem[1] == -1:
+            mem[1] = random.randint(0, len(sticker_set.stickers) - 1)
         await context.bot.send_message(
             update.message.chat_id,
             f'{update.message.from_user.name}, твое состояние сегодня:'
         )
         await context.bot.send_sticker(
             update.message.chat_id,
-            sticker_set.stickers[seed % len(sticker_set.stickers)]
+            sticker_set.stickers[mem[1]]
         )
     else:
-        images = os.listdir('res/images/' + category)
+        images = os.listdir('res/images/' + mem[0])
         await context.bot.send_message(
             update.message.chat_id,
-            f'{update.message.from_user.name}, {get_category_text(category)}'
+            f'{update.message.from_user.name}, {get_category_text(mem[0])}'
         )
         await context.bot.send_photo(
             update.message.chat_id,
-            f'res/images/{category}/{images[seed % len(images)]}'
+            f'res/images/{mem[0]}/{images[mem[1]]}'
         )
 
 
-def get_daily_seed(user_id: int) -> int:
-    date = datetime.date.today()
-    return user_id * date.day * date.month * date.year
+def get_daily_mem(user_id: int) -> (str, int):
+    global last_update
+    if last_update.day != date.today().day:
+        today_memes.clear()
+        last_update = date.today()
+    if user_id not in today_memes:
+        category = choose_category(random.randint(0, sum(WEIGHTS.values()) - 1))
+        img_id = -1
+        if category != 'стикер':
+            img_id = random.randint(0, len(os.listdir('res/images/' + category)) - 1)
+        today_memes[user_id] = [category, img_id]
+    return today_memes[user_id]
 
 
 def choose_category(seed: int) -> str:
