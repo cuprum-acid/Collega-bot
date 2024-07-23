@@ -79,4 +79,4 @@ def _remove_job(context: CallbackContext, name: str) -> None:
             job.schedule_removal()
             break
     else:
-        logging.warning(f'Could not find job with name "player_monitor"')
+        logging.warning(f'Could not find job with name {name}')

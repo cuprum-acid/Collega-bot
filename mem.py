@@ -1,97 +1,112 @@
+import logging
 import os
 import random
 from datetime import date
 from telegram import Update
 from telegram.ext import CallbackContext
 
-WEIGHTS: dict[str, int] = {
-    'стикер': 30,
-    'достижения': 5,
-    'жиза': 7,
-    'навязчивые_мысли': 5,
-    'планы': 8,
-    'вопросы': 3,
-    'настроение': 1,
-    'правила': 7,
-    'это_я': 3,
-    'информация': 3
-}
-today_memes: dict[int: [str, int]] = {}  # matches (category, img_number) to a user_id
-last_update: date = date.today()
 
-random.seed(last_update.year * last_update.month * last_update.day)
+class ImageCategory:
+    def __init__(self, name: str, description: str, chance: int):
+        self.name: str = name
+        self.description: str = description
+        self.chance: int = chance
+        self.memes: list[str] = os.listdir(f'res/images/{name}/')
+
+
+class StickerCategory:
+    def __init__(self, name: str, chance: int):
+        self.name: str = name
+        self.chance: int = chance
+        self.memes = None
+
+
+meme_categories = [
+    StickerCategory(
+        'Haha_kemp',
+        35
+    ),
+    ImageCategory(
+        'достижения',
+        'возможно, сегодня ты сможешь добиться чего-то необычного:\n\nРедкость: колдовство 🌝🌝🌝🌑🌑',
+        4
+    ),
+    ImageCategory(
+        'жиза',
+        'думаю, тебе знакомо это чувство:\n\nРедкость: ничего особенного 🌝🌝🌑🌑🌑',
+        8
+    ),
+    ImageCategory(
+        'навязчивые_мысли',
+        ('может быть, тебя преследуют подобные навязчивые мысли. '
+         'Постарайся думать, что это все неправда.\n\nРедкость: колдовство 🌝🌝🌝🌑🌑'),
+        4
+    ),
+    ImageCategory(
+        'планы',
+        'думаю, сегодня тебе определенно стоит сделать что-то похожее:\n\nРедкость: ничего особенного 🌝🌝🌑🌑🌑',
+        8
+    ),
+    ImageCategory(
+        'вопросы',
+        'сегодня важно задать себе правильный вопрос, а потом ответить на него\n\nРедкость: ничего особенного 🌝🌝🌑🌑🌑',
+        8
+    ),
+    ImageCategory(
+        'настроение',
+        'возможно это поднимет тебе настроение\n\nРедкость: ЛеГеНдАрКа 🌝🌝🌝🌝🌝',
+        1
+    ),
+    ImageCategory(
+        'правила',
+        'есть важное правило. Сегодня лучше следовать ему во всем\n\nРедкость: ничего особенного 🌝🌝🌑🌑🌑',
+        8
+    ),
+    ImageCategory(
+        'это_я',
+        'узнаешь себя?\n\nРедкость: цыганские фокусы! 🌝🌝🌝🌝🌑',
+        2
+    ),
+    ImageCategory(
+        'информация',
+        'у меня есть важное сообщение для тебя.\n\nРедкость: цыганские фокусы! 🌝🌝🌝🌝🌑',
+        2
+    )
+]
+today_memes = dict()
+last_update: date = date.today()
 
 
 async def get_mem(update: Update, context: CallbackContext) -> None:
-    mem: (str, int) = get_daily_mem(update.message.from_user.id)
-    if mem[0] == 'стикер':
-        sticker_set = await context.bot.get_sticker_set("Haha_kemp")
-        if mem[1] == -1:
-            mem[1] = random.randint(0, len(sticker_set.stickers) - 1)
+    global last_update
+    if date.today() != last_update:
+        today_memes.clear()
+        last_update = date.today()
+    user_id = update.message.from_user.id
+    if user_id not in today_memes:
+        meme_category = random.choices(meme_categories, weights=[category.chance for category in meme_categories])[0]
+        if isinstance(meme_category, StickerCategory) and meme_category.memes is None:
+            meme_category.memes = (await context.bot.get_sticker_set(meme_category.name)).stickers
+        today_memes[user_id] = (meme_category, random.randint(0, len(meme_category.memes) - 1))
+
+    meme_category = today_memes[user_id][0]
+    meme_number = today_memes[user_id][1]
+    if isinstance(meme_category, StickerCategory):
         await context.bot.send_message(
             update.message.chat_id,
-            f'{update.message.from_user.name}, твое состояние сегодня:'
+            f'{update.message.from_user.name}, твое состояние сегодня\n\nРедкость: стикер 🌝🌑🌑🌑🌑'
         )
         await context.bot.send_sticker(
             update.message.chat_id,
-            sticker_set.stickers[mem[1]]
-        )
-    else:
-        images = os.listdir('res/images/' + mem[0])
+            meme_category.memes[meme_number])
+    elif isinstance(meme_category, ImageCategory):
         await context.bot.send_message(
             update.message.chat_id,
-            f'{update.message.from_user.name}, {get_category_text(mem[0])}'
+            f'{update.message.from_user.name}, {meme_category.description}'
         )
         await context.bot.send_photo(
             update.message.chat_id,
-            f'res/images/{mem[0]}/{images[mem[1]]}'
+            f'res/images/{meme_category.name}/{meme_category.memes[meme_number]}'
         )
-
-
-def get_daily_mem(user_id: int) -> (str, int):
-    global last_update
-    if last_update.day != date.today().day:
-        today_memes.clear()
-        last_update = date.today()
-    if user_id not in today_memes:
-        category = choose_category(random.randint(0, sum(WEIGHTS.values()) - 1))
-        img_id = -1
-        if category != 'стикер':
-            img_id = random.randint(0, len(os.listdir('res/images/' + category)) - 1)
-        today_memes[user_id] = [category, img_id]
-    return today_memes[user_id]
-
-
-def choose_category(seed: int) -> str:
-    seed = seed % sum(WEIGHTS.values())
-    right = 0
-    for category in WEIGHTS:
-        left = right
-        right += WEIGHTS[category]
-        if left <= seed < right:
-            return category
-
-
-def get_category_text(category: str) -> str:
-    match category:
-        case 'достижения':
-            return 'возможно, сегодня ты сможешь добиться чего-то необычного:\n\nРедкость: обычная 🌝🌝🌑🌑🌑'
-        case 'жиза':
-            return 'думаю, тебе знакомо это чувство:\n\nРедкость: стандартная 🌝🌑🌑🌑🌑'
-        case 'навязчивые_мысли':
-            return ('может быть, тебя преследуют подобные навязчивые мысли. '
-                    'Постарайся думать, что это все неправда.\n\nРедкость: обычная 🌝🌝🌑🌑🌑')
-        case 'планы':
-            return 'думаю, сегодня тебе определенно стоит сделать что-то похожее:\n\nРедкость: стандартная 🌝🌑🌑🌑🌑'
-        case 'вопросы':
-            return 'сегодня важно задать себе правильный вопрос, а потом ответить на него\n\nРедкость: обычная 🌝🌝🌑🌑🌑'
-        case 'настроение':
-            return 'возможно это поднимет тебе настроение\n\nРедкость: легендарка 🌝🌝🌝🌝🌑'
-        case 'правила':
-            return 'есть важное правило. Сегодня лучше следовать ему во всем\n\nРедкость: стандартная 🌝🌑🌑🌑🌑'
-        case 'это_я':
-            return 'узнаешь себя?\n\nРедкость: редкая 🌝🌝🌝🌑🌑'
-        case 'информация':
-            return 'у меня есть важное сообщение для тебя.\n\nРедкость: редкая 🌝🌝🌝🌑🌑'
-        case _:
-            return 'без комментариев...\n\nРедкость: Невозможно 🌝🌝🌝🌝🌝'
+    else:
+        logging.warning('unknown category')
