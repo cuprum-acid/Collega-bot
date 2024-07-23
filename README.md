@@ -6,5 +6,5 @@
 
 ## Add a new meme
 
-- place it to existing folder in res/images
-- or create your category: set weight in mem.py and description in get_category_text()
+- place it to an existing folder in `res/images` or specify sticker pack name
+- create your category: the class must have `chance: int` and `memes: Sized`
