@@ -1,33 +1,28 @@
-import requests
+from mcstatus import JavaServer
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
 from mem import get_mem
 
-TELEGRAM_BOT_TOKEN = ''
-SERVER_URL = "https://api.mcsrvstat.us/3/d11.gamely.pro:20187"
-REQUEST_INTERVAL = 240
+TELEGRAM_BOT_TOKEN = '7347579895:AAF90t8oKw9Tbs67GzcOHis97t3s5jStIYc'
+SERVER_URL = "d11.gamely.pro:20187"
+API_URL = f"https://api.mcsrvstat.us/3/{SERVER_URL}"
+server = JavaServer.lookup(SERVER_URL)
+REQUEST_INTERVAL = 60
 online_players = []
 
 
-def get_players() -> (list[str], None):
-    response = requests.get(SERVER_URL)
-    data = response.json()
-    if 'players' in data and 'online' in data['players']:
-        online_players_count = data['players']['online']
-        if online_players_count > 0 and 'list' in data['players']:
-            return [player['name'] for player in data['players']['list']]
-        else:
-            return []
-    else:
-        return None
+def get_players() -> list[str]:
+    query = server.query()
+    return query.players.names
 
 
 async def check_new_players(context: CallbackContext) -> None:
     global online_players
     current_players = get_players()
-    if current_players is None:
+    if not current_players:
         return
+
     joined_players = set(current_players) - set(online_players)
     quited_players = set(online_players) - set(current_players)
     online_players = current_players
