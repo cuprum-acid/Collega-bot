@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "collega-bot"
+version = "0.1.0"
+description = ""
+authors = ["dmhd6219 <svyatoslavsvyatkin@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+mcstatus = "^11.1.1"
+python-telegram-bot = {extras = ["job-queue"], version = "^21.4"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

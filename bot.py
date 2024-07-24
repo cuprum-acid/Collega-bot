@@ -1,11 +1,42 @@
-import mem
-import players_info
+from __future__ import annotations
 
+import os
+
+from mcstatus import JavaServer
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
-TELEGRAM_BOT_TOKEN = ''
+from mem import get_mem
 
+SERVER_URL = os.environ.get('SERVER_URL')
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+REQUEST_INTERVAL = int(os.environ.get('REQUEST_INTERVAL'))
+
+server = JavaServer.lookup(SERVER_URL)
+online_players = []
+
+
+def get_players() -> list[str] | None:
+    try:
+        query = server.query()
+        return query.players.names
+    except Exception:
+        return None
+
+
+async def check_new_players(context: CallbackContext) -> None:
+    global online_players
+    current_players = get_players()
+    if not current_players:
+        return
+
+    joined_players = set(current_players) - set(online_players)
+    quited_players = set(online_players) - set(current_players)
+    online_players = current_players
+    if joined_players or quited_players:
+        reply = (f'{"На сервер зашли игроки: " + ", ".join(joined_players) + ". " if joined_players else ""}'
+                 f'{"С сервера вышли: " + ", ".join(quited_players) if quited_players else ""}')
+        await context.bot.send_message(context.job.chat_id, reply)
 
 async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
