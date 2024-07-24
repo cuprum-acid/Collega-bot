@@ -1,10 +1,28 @@
-# Run in Docker 🐳
+# Run locally
 
-- Add bot API key
-- `docker build -t collega-image .`
-- `docker run -d --name collega-conatiner collega-image`
+1. Create `.env` file as in `.env.example`.
 
-## Add a new meme
+2. Run following commands:
+```bash
+poetry install
+python bot.py
+```
 
-- place it to existing folder in res/images
-- or create your category: set weight in mem.py and description in get_category_text()
+# Run in Docker🐳
+
+
+1. Create `.env` file as in `.env.example`.
+
+2. Run following commands:
+```bash
+docker build -t collega-image .
+docker run -d --name collega-conatiner --env-file .env collega-image
+```
+
+# Contributing
+
+**🔄 Pull requests are welcome!**
+
+Please, use gitmoji commit conventions.
+
+Read about gitmoji: https://gitmoji.dev/

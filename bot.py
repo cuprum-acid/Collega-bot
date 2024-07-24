@@ -1,20 +1,27 @@
+from __future__ import annotations
+
+import os
+
 from mcstatus import JavaServer
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
 from mem import get_mem
 
-TELEGRAM_BOT_TOKEN = '7347579895:AAF90t8oKw9Tbs67GzcOHis97t3s5jStIYc'
-SERVER_URL = "d11.gamely.pro:20187"
-API_URL = f"https://api.mcsrvstat.us/3/{SERVER_URL}"
+SERVER_URL = os.environ.get('SERVER_URL')
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+REQUEST_INTERVAL = int(os.environ.get('REQUEST_INTERVAL'))
+
 server = JavaServer.lookup(SERVER_URL)
-REQUEST_INTERVAL = 60
 online_players = []
 
 
-def get_players() -> list[str]:
-    query = server.query()
-    return query.players.names
+def get_players() -> list[str] | None:
+    try:
+        query = server.query()
+        return query.players.names
+    except Exception:
+        return None
 
 
 async def check_new_players(context: CallbackContext) -> None:
