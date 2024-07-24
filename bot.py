@@ -1,40 +1,10 @@
-import requests
+import mem
+import players_info
+
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
-from mem import get_mem
-
 TELEGRAM_BOT_TOKEN = ''
-SERVER_URL = "https://api.mcsrvstat.us/3/d11.gamely.pro:20187"
-REQUEST_INTERVAL = 240
-online_players = []
-
-
-def get_players() -> (list[str], None):
-    response = requests.get(SERVER_URL)
-    data = response.json()
-    if 'players' in data and 'online' in data['players']:
-        online_players_count = data['players']['online']
-        if online_players_count > 0 and 'list' in data['players']:
-            return [player['name'] for player in data['players']['list']]
-        else:
-            return []
-    else:
-        return None
-
-
-async def check_new_players(context: CallbackContext) -> None:
-    global online_players
-    current_players = get_players()
-    if current_players is None:
-        return
-    joined_players = set(current_players) - set(online_players)
-    quited_players = set(online_players) - set(current_players)
-    online_players = current_players
-    if joined_players or quited_players:
-        reply = (f'{"На сервер зашли игроки: " + ", ".join(joined_players) + ". " if joined_players else ""}'
-                 f'{"С сервера вышли: " + ", ".join(quited_players) if quited_players else ""}')
-        await context.bot.send_message(context.job.chat_id, reply)
 
 
 async def start(update: Update, context: CallbackContext) -> None:
@@ -45,9 +15,8 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 
 async def players(update: Update, context: CallbackContext) -> None:
-    global online_players
     try:
-        online_players = get_players()
+        online_players = players_info.get_players()
         if online_players is None:
             reply = 'Не удалось получить информацию о игроках.'
         elif online_players:
@@ -60,21 +29,28 @@ async def players(update: Update, context: CallbackContext) -> None:
 
 
 async def monitor(update: Update, context: CallbackContext) -> None:
-    chat_id = update.message.chat_id
-    context.job_queue.run_repeating(check_new_players, interval=REQUEST_INTERVAL, chat_id=chat_id)
-    await update.message.reply_text(
-        'Коллеги! Просьба не опаздывать на пары! '
-        'Теперь в аудитории я слежу за всеми входящими и выходящими.'
-    )
+    can_start_job = await players_info.monitor(context, update.message.chat_id)
+    if can_start_job:
+        await update.message.reply_text(
+            'Коллеги! Просьба не опаздывать на пары! '
+            'Теперь в аудитории я слежу за всеми входящими и выходящими.'
+        )
+    else:
+        await update.message.reply_text(
+            'Я уже слежу и скажу, когда что-то случится.'
+        )
 
 
 async def monitor_stop(update: Update, context: CallbackContext) -> None:
-    await context.application.job_queue.stop()
-    await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
+    can_stop_job = players_info.monitor_stop(context, update.message.chat_id)
+    if can_stop_job:
+        await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
+    else:
+        await update.message.reply_text('Уже выключено.')
 
 
-async def mem(update: Update, context: CallbackContext) -> None:
-    await get_mem(update, context)
+async def collega_taro(update: Update, context: CallbackContext) -> None:
+    await mem.get_mem(update, context)
 
 
 def main() -> None:
@@ -83,7 +59,7 @@ def main() -> None:
     application.add_handler(CommandHandler("monitor", monitor))
     application.add_handler(CommandHandler("monitor_stop", monitor_stop))
     application.add_handler(CommandHandler("players", players))
-    application.add_handler(CommandHandler("collega_taro", mem))
+    application.add_handler(CommandHandler("collega_taro", collega_taro))
     application.run_polling()
 
 
