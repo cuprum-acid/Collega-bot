@@ -6,14 +6,14 @@ from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
 from mem import get_mem
-from players_info import get_players
+import players_info
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 
 async def check_new_players(context: CallbackContext) -> None:
     global online_players
-    current_players = get_players()
+    current_players = players_info.get_players()
     if not current_players:
         return
 
@@ -35,7 +35,7 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def players(update: Update, context: CallbackContext) -> None:
     try:
-        online_players = get_players()
+        online_players = players_info.get_players()
         if online_players is None:
             reply = 'Не удалось получить информацию о игроках.'
         elif online_players:
@@ -48,7 +48,7 @@ async def players(update: Update, context: CallbackContext) -> None:
 
 
 async def monitor(update: Update, context: CallbackContext) -> None:
-    can_start_job = await monitor(context, update.message.chat_id)
+    can_start_job = await players_info.monitor(context, update.message.chat_id)
     if can_start_job:
         await update.message.reply_text(
             'Коллеги! Просьба не опаздывать на пары! '
@@ -61,7 +61,7 @@ async def monitor(update: Update, context: CallbackContext) -> None:
 
 
 async def monitor_stop(update: Update, context: CallbackContext) -> None:
-    can_stop_job = monitor_stop(context, update.message.chat_id)
+    can_stop_job = players_info.monitor_stop(context, update.message.chat_id)
     if can_stop_job:
         await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
     else:
