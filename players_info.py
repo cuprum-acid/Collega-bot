@@ -1,25 +1,25 @@
-import requests
+from __future__ import annotations
 import logging
-from telegram.ext import CallbackContext
+import os
 
-REQUEST_INTERVAL = 240
-SERVER_URL = "https://api.mcsrvstat.us/3/d11.gamely.pro:20187"
+from mcstatus import JavaServer
+from telegram.ext import CallbackContext
 
 is_job_running = False
 online_players = []
 chats_to_notify = set()
 
+SERVER_URL = os.environ.get('SERVER_URL')
+REQUEST_INTERVAL = int(os.environ.get('REQUEST_INTERVAL'))
 
-def get_players() -> (list[str], None):
-    response = requests.get(SERVER_URL)
-    data = response.json()
-    if 'players' in data and 'online' in data['players']:
-        online_players_count = data['players']['online']
-        if online_players_count > 0 and 'list' in data['players']:
-            return [player['name'] for player in data['players']['list']]
-        else:
-            return []
-    else:
+server = JavaServer.lookup(SERVER_URL)
+
+
+def get_players() -> list[str] | None:
+    try:
+        query = server.query()
+        return query.players.names
+    except Exception:
         return None
 
 

@@ -2,26 +2,13 @@ from __future__ import annotations
 
 import os
 
-from mcstatus import JavaServer
 from telegram import Update
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
 from mem import get_mem
+from players_info import get_players
 
-SERVER_URL = os.environ.get('SERVER_URL')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-REQUEST_INTERVAL = int(os.environ.get('REQUEST_INTERVAL'))
-
-server = JavaServer.lookup(SERVER_URL)
-online_players = []
-
-
-def get_players() -> list[str] | None:
-    try:
-        query = server.query()
-        return query.players.names
-    except Exception:
-        return None
 
 
 async def check_new_players(context: CallbackContext) -> None:
@@ -38,6 +25,7 @@ async def check_new_players(context: CallbackContext) -> None:
                  f'{"С сервера вышли: " + ", ".join(quited_players) if quited_players else ""}')
         await context.bot.send_message(context.job.chat_id, reply)
 
+
 async def start(update: Update, context: CallbackContext) -> None:
     await update.message.reply_text(
         'Привет! Используй команду /players, чтобы узнать кто сейчас на сервере Minecraft. '
@@ -47,7 +35,7 @@ async def start(update: Update, context: CallbackContext) -> None:
 
 async def players(update: Update, context: CallbackContext) -> None:
     try:
-        online_players = players_info.get_players()
+        online_players = get_players()
         if online_players is None:
             reply = 'Не удалось получить информацию о игроках.'
         elif online_players:
@@ -60,7 +48,7 @@ async def players(update: Update, context: CallbackContext) -> None:
 
 
 async def monitor(update: Update, context: CallbackContext) -> None:
-    can_start_job = await players_info.monitor(context, update.message.chat_id)
+    can_start_job = await monitor(context, update.message.chat_id)
     if can_start_job:
         await update.message.reply_text(
             'Коллеги! Просьба не опаздывать на пары! '
@@ -73,7 +61,7 @@ async def monitor(update: Update, context: CallbackContext) -> None:
 
 
 async def monitor_stop(update: Update, context: CallbackContext) -> None:
-    can_stop_job = players_info.monitor_stop(context, update.message.chat_id)
+    can_stop_job = monitor_stop(context, update.message.chat_id)
     if can_stop_job:
         await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
     else:
@@ -81,7 +69,7 @@ async def monitor_stop(update: Update, context: CallbackContext) -> None:
 
 
 async def collega_taro(update: Update, context: CallbackContext) -> None:
-    await mem.get_mem(update, context)
+    await get_mem(update, context)
 
 
 def main() -> None:
