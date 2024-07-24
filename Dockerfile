@@ -13,10 +13,5 @@ RUN poetry install --no-interaction
 
 COPY . /app
 
-COPY bot.py /app
-COPY mem.py /app
-COPY players_info.py /app
-COPY res /app
-
 # Set the entrypoint command to run your application
 CMD ["python", "bot.py"]
