@@ -23,8 +23,12 @@ class StickerCategory:
 
 meme_categories = [
     StickerCategory(
-        'Haha_kemp',
-        35
+        os.environ.get('STICKERS_NAME1'),
+        17
+    ),
+    StickerCategory(
+        os.environ.get('STICKERS_NAME2'),
+        17
     ),
     ImageCategory(
         'достижения',
