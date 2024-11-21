@@ -2,8 +2,10 @@ import logging
 import os
 import random
 from datetime import date
-from telegram import Update
+from telegram import Update, error
 from telegram.ext import CallbackContext
+
+from logger import logger
 
 
 class ImageCategory:
@@ -86,15 +88,24 @@ async def get_mem(update: Update, context: CallbackContext) -> None:
     if date.today() != last_update:
         today_memes.clear()
         last_update = date.today()
+        logger.info(f"Updated memes on {last_update}")
     user_id = update.message.from_user.id
     if user_id not in today_memes:
         meme_category = random.choices(meme_categories, weights=[category.chance for category in meme_categories])[0]
         if isinstance(meme_category, StickerCategory) and meme_category.memes is None:
-            meme_category.memes = (await context.bot.get_sticker_set(meme_category.name)).stickers
+            try:
+                meme_category.memes = (await context.bot.get_sticker_set(meme_category.name)).stickers
+                logger.info(f'Loaded sticker set {meme_category.name}')
+            except error.TimedOut as e:
+                logger.warning(f'Timed out getting sticker set {meme_category.name}\n')
+            except Exception as e:
+                logger.warning(f'Invalid sticker set {meme_category.name}\n {e}')
+
         today_memes[user_id] = (meme_category, random.randint(0, len(meme_category.memes) - 1))
 
     meme_category = today_memes[user_id][0]
     meme_number = today_memes[user_id][1]
+    logger.info(f'{meme_category.name = }, {meme_number = }')
     if isinstance(meme_category, StickerCategory):
         await context.bot.send_message(
             update.message.chat_id,

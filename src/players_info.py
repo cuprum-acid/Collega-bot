@@ -1,9 +1,9 @@
 from __future__ import annotations
-import logging
 import os
 
 from mcstatus import JavaServer
 from telegram.ext import CallbackContext
+from logger import logger
 
 is_job_running = False
 online_players = []
@@ -19,8 +19,8 @@ def get_players() -> list[str] | None:
     try:
         query = server.query()
         return query.players.names
-    except Exception:
-        return None
+    except Exception as e:
+        logger.warning(f'{e}')
 
 
 async def check_new_players(context: CallbackContext) -> None:
@@ -79,4 +79,4 @@ def _remove_job(context: CallbackContext, name: str) -> None:
             job.schedule_removal()
             break
     else:
-        logging.warning(f'Could not find job with name {name}')
+        logger.warning(f'Could not find job with name {name}')
