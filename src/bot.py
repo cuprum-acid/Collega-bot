@@ -20,11 +20,11 @@ async def check_new_players(context: CallbackContext) -> None:
         return
 
     joined_players = set(current_players) - set(online_players)
-    quited_players = set(online_players) - set(current_players)
+    quitted_players = set(online_players) - set(current_players)
     online_players = current_players
-    if joined_players or quited_players:
+    if joined_players or quitted_players:
         reply = (f'{"На сервер зашли игроки: " + ", ".join(joined_players) + ". " if joined_players else ""}'
-                 f'{"С сервера вышли: " + ", ".join(quited_players) if quited_players else ""}')
+                 f'{"С сервера вышли: " + ", ".join(quitted_players) if quitted_players else ""}')
         await context.bot.send_message(context.job.chat_id, reply)
 
 

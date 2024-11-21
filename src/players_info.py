@@ -29,18 +29,18 @@ async def check_new_players(context: CallbackContext) -> None:
     if current_players is None:
         return
     joined_players = set(current_players) - set(online_players)
-    quited_players = set(online_players) - set(current_players)
+    quitted_players = set(online_players) - set(current_players)
     online_players = current_players
-    if joined_players or quited_players:
+    if joined_players or quitted_players:
         notification = ''
         if len(joined_players) == 1:
             notification += f'На сервер зашел игрок {joined_players.pop()}.\n'
         elif len(joined_players) > 1:
             notification += f'На сервер зашли игроки {", ".join(joined_players)}.\n'
-        if len(quited_players) == 1:
-            notification += f'C сервера вышел игрок {quited_players.pop()}'
-        elif len(quited_players) > 1:
-            notification += f'С сервера вышли игроки {", ".join(quited_players)}'
+        if len(quitted_players) == 1:
+            notification += f'C сервера вышел игрок {quitted_players.pop()}'
+        elif len(quitted_players) > 1:
+            notification += f'С сервера вышли игроки {", ".join(quitted_players)}'
         for chat in chats_to_notify:
             await context.bot.send_message(chat, notification)
 
