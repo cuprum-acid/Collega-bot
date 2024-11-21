@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.11"
 mcstatus = "^11.1.1"
 python-telegram-bot = {extras = ["job-queue"], version = "^21.4"}
+python-dotenv = "^1.0.1"
 
 
 [build-system]
