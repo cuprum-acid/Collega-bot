@@ -96,7 +96,7 @@ async def get_mem(update: Update, context: CallbackContext) -> None:
             try:
                 meme_category.memes = (await context.bot.get_sticker_set(meme_category.name)).stickers
                 logger.info(f'Loaded sticker set {meme_category.name}')
-            except error.TimedOut as e:
+            except error.TimedOut:
                 logger.warning(f'Timed out getting sticker set {meme_category.name}\n')
             except Exception as e:
                 logger.warning(f'Invalid sticker set {meme_category.name}\n {e}')

@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 
 from dotenv import load_dotenv
-import telegram
 load_dotenv()
 from telegram import Update, error
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
@@ -49,7 +48,7 @@ async def players(update: Update, context: CallbackContext) -> None:
         else:
             reply = 'На сервере в данный момент нет игроков.'
     except Exception as e:
-        reply = f"Произошла ошибка при запросе к серверу."
+        reply = "Произошла ошибка при запросе к серверу."
         logger.warning(f'{e}')
     logger.info(f'players on the server: {online_players}')
     await update.message.reply_text(reply)
