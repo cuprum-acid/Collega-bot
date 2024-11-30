@@ -62,7 +62,6 @@ async def monitor(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text(
             'Я уже слежу и скажу, когда что-то случится.'
         )
-    logger.info(f'Active jobs: {context.job_queue.jobs()}')
 
 
 async def monitor_stop(update: Update, context: CallbackContext) -> None:
@@ -72,7 +71,6 @@ async def monitor_stop(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text('Свободная посещаемость! я не слежу за вами.')
     else:
         await update.message.reply_text('Уже выключено.')
-    logger.info(f'Active jobs: {context.job_queue.jobs()}')
 
 
 async def collega_taro(update: Update, context: CallbackContext) -> None:

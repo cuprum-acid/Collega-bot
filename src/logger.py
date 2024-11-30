@@ -45,7 +45,7 @@ LOGGING_CONFIG = {
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)
-scheduler_logger = logging.getLogger('apscheduler.scheduler')
+scheduler_logger = logging.getLogger('apscheduler')
 scheduler_logger.setLevel(logging.WARNING)
 httpx_logger = logging.getLogger('httpx')
 httpx_logger.setLevel(logging.WARNING)

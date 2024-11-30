@@ -36,9 +36,9 @@ async def check_new_players(context: CallbackContext) -> None:
         elif len(joined_players) > 1:
             notification += f'На сервер зашли игроки {", ".join(joined_players)}.\n'
         if len(quitted_players) == 1:
-            notification += f'C сервера вышел игрок {quitted_players.pop()}'
+            notification += f'C сервера вышел игрок {quitted_players.pop()}.'
         elif len(quitted_players) > 1:
-            notification += f'С сервера вышли игроки {", ".join(quitted_players)}'
+            notification += f'С сервера вышли игроки {", ".join(quitted_players)}.'
         for chat in chats_to_notify:
             await context.bot.send_message(chat, notification)
 
@@ -56,6 +56,7 @@ async def monitor(context: CallbackContext, chat_id) -> bool:
         return False
     else:
         chats_to_notify.add(chat_id)
+        logger.info(f'Active jobs: {context.job_queue.jobs()}, {chats_to_notify = }')
         return True
 
 
@@ -67,6 +68,7 @@ def monitor_stop(context: CallbackContext, chat_id) -> bool:
     if not chats_to_notify:
         _remove_job(context, name='player_monitor')
         is_job_running = False
+    logger.info(f'Active jobs: {context.job_queue.jobs()}, {chats_to_notify = }')
     return True
 
 
