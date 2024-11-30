@@ -15,7 +15,7 @@ python bot.py
 2. Run following commands:
 ```bash
 docker build -t collega-image .
-docker run --name collega-conatiner --env-file .env collega-image
+docker run --name collega-container --env-file .env collega-image
 ```
 
 # Contributing
