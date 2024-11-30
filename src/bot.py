@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-import os
 
-from dotenv import load_dotenv
-load_dotenv()
 from telegram import Update, error
 from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder, JobQueue
 
+from config import TELEGRAM_BOT_TOKEN
 from mem import get_mem
 from logger import logger
 import players_info
-
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
 
 async def check_new_players(context: CallbackContext) -> None:
@@ -99,5 +95,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    logger.info(f'Loaded .env: {os.environ.values()}')
     main()

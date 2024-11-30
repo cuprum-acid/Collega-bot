@@ -5,6 +5,7 @@ from datetime import date
 from telegram import Update, error
 from telegram.ext import CallbackContext
 
+from config import STICKERS_NAME1, STICKERS_NAME2
 from logger import logger
 
 
@@ -25,11 +26,11 @@ class StickerCategory:
 
 meme_categories = [
     StickerCategory(
-        os.environ.get('STICKERS_NAME1'),
+        STICKERS_NAME1,
         17
     ),
     StickerCategory(
-        os.environ.get('STICKERS_NAME2'),
+        STICKERS_NAME2,
         17
     ),
     ImageCategory(

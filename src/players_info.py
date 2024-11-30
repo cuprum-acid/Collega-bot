@@ -1,16 +1,14 @@
 from __future__ import annotations
-import os
 
 from mcstatus import JavaServer
 from telegram.ext import CallbackContext
+from config import REQUEST_INTERVAL, SERVER_URL
 from logger import logger
 
 is_job_running = False
 online_players = []
 chats_to_notify = set()
 
-SERVER_URL = os.environ.get('SERVER_URL')
-REQUEST_INTERVAL = int(os.environ.get('REQUEST_INTERVAL'))
 
 server = JavaServer.lookup(SERVER_URL)
 
